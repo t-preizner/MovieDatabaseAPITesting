@@ -1,0 +1,13 @@
+{
+  "Search": [
+    {
+      "Title": "The Hateful Eight",
+      "Year": "2015",
+      "imdbID": "tt3460252",
+      "Type": "movie",
+      "Poster": "https://m.media-amazon.com/images/M/MV5BMjA1MTc1NTg5NV5BMl5BanBnXkFtZTgwOTM2MDEzNzE@._V1_SX300.jpg"
+    }
+  ],
+  "totalResults": "1",
+  "Response": "True"
+}

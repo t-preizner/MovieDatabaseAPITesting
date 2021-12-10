@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using Newtonsoft.Json.Linq;
+using System.Xml.Linq;
 
 namespace MovieDatabaseAPITesting
 {
@@ -27,16 +28,16 @@ namespace MovieDatabaseAPITesting
 
             request = new RestRequest(Method.GET);
 
-            request.AddHeader("x-rapidapi-host", "movie-database-imdb-alternative.p.rapidapi.com");
+            //request.AddHeader("x-rapidapi-host", "movie-database-imdb-alternative.p.rapidapi.com");
             request.AddHeader("x-rapidapi-key", "a7a4498059mshb397be3ba3c8cffp1ed061jsnc41d2ee900b9");
 
             // parse ValidResponse.json to compare JSON response model
-            StreamReader errorResponseRead = new StreamReader("C:/Users/tpreizner/Documents/test_projects/movie-database-api-tests/MovieDatabaseAPITesting/MovieDatabaseAPITesting/MovieDatabaseAPITesting/ResponseModels/ValidResponse.json");
+            StreamReader errorResponseRead = new StreamReader(@"..\..\..\ResponseModels\ValidResponse.json");
             string errorJson = errorResponseRead.ReadToEnd();
             validResponse = JObject.Parse(errorJson);
 
             // parse ErrorResponse.json to compare JSON response model
-            StreamReader validResponseRead = new StreamReader("C:/Users/tpreizner/Documents/test_projects/movie-database-api-tests/MovieDatabaseAPITesting/MovieDatabaseAPITesting/MovieDatabaseAPITesting/ResponseModels/ErrorResponse.json");
+            StreamReader validResponseRead = new StreamReader(@"..\..\..\ResponseModels\ErrorResponse.json");
             string validJson = validResponseRead.ReadToEnd();
             errorResponse = JObject.Parse(validJson);
         }
@@ -52,7 +53,7 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("page", "1");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             JObject actual = JObject.Parse(response.Content);
 
             // Then
@@ -68,7 +69,7 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("s", "The Hateful Eight");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             JObject actual = JObject.Parse(response.Content);
 
             // Then
@@ -81,9 +82,10 @@ namespace MovieDatabaseAPITesting
         public void CheckRequestWithoutRequiredParameters()
         {
             // Given
+            request.AddParameter("s", null);
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             var actual = JsonConvert.DeserializeObject(response.Content);
 
             // Expected
@@ -102,32 +104,32 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("s", "The");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             JObject actual = JObject.Parse(response.Content);
 
             // Expected 
             JObject expected = new JObject
             {
-                { "Responce", "False"},
+                { "Response", "False"}, 
                 { "Error", "Too many results."}
             };
 
             // Then
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(response.StatusDescription, Is.EqualTo("OK"));
-            Assert.That(JToken.DeepEquals(expected, actual));        // розібратися!!!!
+            Assert.That(JToken.DeepEquals(expected, actual));
         }
 
         // ============================== check title =====================================
 
         [Test]
-        public void CheckRequestWithAPartOfTitle()
+        public void CheckRequestWithAPartOfTitle() // change title
         {
             // Given
             request.AddParameter("s", "Eight");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             var actual = JsonConvert.DeserializeObject<Root>(response.Content);
 
             // Expected
@@ -146,7 +148,7 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("s", "testdummydata");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             JObject actual = JObject.Parse(response.Content);
 
             // Then
@@ -165,7 +167,7 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("r", "json");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             JObject actual = JObject.Parse(response.Content);
 
             // Then
@@ -182,13 +184,16 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("r", "xml");
 
             // When
-            var response = client.Execute(request, Method.GET);
-            JObject actual = JObject.Parse(response.Content);
+            var response = client.Execute(request);
+            XDocument actual = XDocument.Parse(response.Content);
+
+            // Expected
+            XDocument xmlResponse = XDocument.Load(@"..\..\..\ResponseModels\ValidXMLResponse.xml");
 
             // Then
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(response.StatusDescription, Is.EqualTo("OK"));
-            Assert.That(JToken.DeepEquals(validResponse, actual), "JSON Model Is Not Correct");
+            Assert.That(XNode.DeepEquals(xmlResponse, actual), "XML Model Is Not Correct");
         }
 
         [Test]
@@ -199,7 +204,7 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("r", "test");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             JObject actual = JObject.Parse(response.Content);
 
             // Then
@@ -220,7 +225,7 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("type", movie);
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             var actual = JsonConvert.DeserializeObject<Root>(response.Content);
 
             // Then
@@ -237,11 +242,11 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("type", "test");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             JObject actual = JObject.Parse(response.Content);
 
             // Then
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), "Status Code != 200");
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), "Status Code != 200"); // писати код, що приходить
             Assert.That(response.StatusDescription, Is.EqualTo("OK"), "Status Message != OK");
             Assert.That(JToken.DeepEquals(errorResponse, actual), "JSON Model Is Not Correct");
         }
@@ -250,14 +255,14 @@ namespace MovieDatabaseAPITesting
 
 
         [Test]
-        public void CheckRequestForValidYear()
+        public void CheckRequestForValidYear() // видалити
         {
             // Given
             request.AddParameter("s", "The Hateful Eight");
             request.AddParameter("y", "2015");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             var actual = JsonConvert.DeserializeObject<Root>(response.Content);
 
             // Then
@@ -274,7 +279,7 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("y", "2000");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             JObject actual = JObject.Parse(response.Content);
 
             // Then
@@ -291,7 +296,7 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("y", "test");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             JObject actual = JObject.Parse(response.Content);
 
             // Then
@@ -310,7 +315,7 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("page", "2");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             var actual = JsonConvert.DeserializeObject<Root>(response.Content);
 
             // Then
@@ -327,7 +332,7 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("page", "3");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             JObject actual = JObject.Parse(response.Content);
 
             // Then
@@ -344,11 +349,11 @@ namespace MovieDatabaseAPITesting
             request.AddParameter("page", "test");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             var actual = JsonConvert.DeserializeObject<Root>(response.Content);
 
             // Expected
-            var expected = "Kill Bil";
+            var expected = "Kill Bill";
 
             // Then
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -367,7 +372,7 @@ namespace MovieDatabaseAPITesting
 
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             JObject actual = JObject.Parse(response.Content);
 
             // Expected
@@ -390,52 +395,24 @@ namespace MovieDatabaseAPITesting
 
             request = new RestRequest(Method.GET);
 
-            request.AddHeader("x-rapidapi-host", "test-movie-database-imdb-alternative.p.rapidapi.com");
-            request.AddHeader("x-rapidapi-key", "a7a4498059mshb397be3ba3c8cffp1ed061jsnc41d2ee900b9");
-            request.AddParameter("s", "The Hateful Eight");
-
-            // When
-            var response = client.Execute(request, Method.GET);
-            JObject actual = JObject.Parse(response.Content);
-
-            // Expected
-            JObject expected = new JObject
-            {
-                { "message", "API doesn't exists"}
-            };
-
-            // Then
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
-            Assert.That(response.StatusDescription, Is.EqualTo("Not Found"));
-            Assert.That(JToken.DeepEquals(expected, actual), "HTTP Status Code != 404");
-        }
-
-        [Test]
-        public void CheckNonValidHost1()
-        {
-            // Given
-            client = new RestClient("https://movie-database-imdb-alternative.p.rapidapi.com/");
-
-            request = new RestRequest(Method.GET);
-
             request.AddHeader("x-rapidapi-host", "test");
             request.AddHeader("x-rapidapi-key", "a7a4498059mshb397be3ba3c8cffp1ed061jsnc41d2ee900b9");
             request.AddParameter("s", "The Hateful Eight");
 
             // When
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
             JObject actual = JObject.Parse(response.Content);
 
             // Expected
             JObject expected = new JObject
             {
-                { "message", "The host you've provided is invalid. If you have difficulties, contact the RapidAPI support team, support@rapidapi.com"}
+                { "messages", "The host you've provided is invalid. If you have difficulties, contact the RapidAPI support team, support@rapidapi.com"}
             };
 
             // Then
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
             Assert.That(response.StatusDescription, Is.EqualTo("Bad Request"));
-            Assert.That(JToken.DeepEquals(expected, actual), "HTTP Status Code != 400"); // розібратися
+            Assert.That(JToken.DeepEquals(expected, actual), "HTTP Status Code != 400");
         }
     }
 }

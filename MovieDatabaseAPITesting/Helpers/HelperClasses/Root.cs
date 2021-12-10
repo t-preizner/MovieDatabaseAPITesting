@@ -11,5 +11,12 @@ namespace MovieDatabaseAPITesting
         public List<Search> Search { get; set; }
         public string totalResults { get; set; }
         public string Response { get; set; }
+
+        public Root(List<Search> movies, string total, string response)
+        {
+            Search = movies;
+            totalResults = total;
+            Response = response;
+        }
     }
 }

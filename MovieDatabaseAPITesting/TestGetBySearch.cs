@@ -28,18 +28,18 @@ namespace MovieDatabaseAPITesting
 
             request = new RestRequest(Method.GET);
 
-            //request.AddHeader("x-rapidapi-host", "movie-database-imdb-alternative.p.rapidapi.com");
+            request.AddHeader("x-rapidapi-host", "movie-database-imdb-alternative.p.rapidapi.com");
             request.AddHeader("x-rapidapi-key", "a7a4498059mshb397be3ba3c8cffp1ed061jsnc41d2ee900b9");
 
             // parse ValidResponse.json to compare JSON response model
-            StreamReader errorResponseRead = new StreamReader(@"..\..\..\ResponseModels\ValidResponse.json");
-            string errorJson = errorResponseRead.ReadToEnd();
-            validResponse = JObject.Parse(errorJson);
+            StreamReader validResponseRead = new StreamReader(@"..\..\..\ResponseModels\ValidResponse.json");
+            string validJson = validResponseRead.ReadToEnd();
+            validResponse = JObject.Parse(validJson);
 
             // parse ErrorResponse.json to compare JSON response model
-            StreamReader validResponseRead = new StreamReader(@"..\..\..\ResponseModels\ErrorResponse.json");
-            string validJson = validResponseRead.ReadToEnd();
-            errorResponse = JObject.Parse(validJson);
+            StreamReader errorResponseRead = new StreamReader(@"..\..\..\ResponseModels\ErrorResponse.json");
+            string errorJson = errorResponseRead.ReadToEnd();
+            errorResponse = JObject.Parse(errorJson);
         }
 
         [Test]
@@ -126,14 +126,14 @@ namespace MovieDatabaseAPITesting
         public void CheckRequestWithAPartOfTitle() // change title
         {
             // Given
-            request.AddParameter("s", "Eight");
+            request.AddParameter("s", "The Hateful");
 
             // When
             var response = client.Execute(request);
             var actual = JsonConvert.DeserializeObject<Root>(response.Content);
 
             // Expected
-            var expected = "Eight";
+            var expected = "The Hateful";
 
             // Then
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));

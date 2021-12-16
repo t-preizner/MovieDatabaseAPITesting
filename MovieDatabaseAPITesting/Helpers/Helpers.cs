@@ -17,25 +17,30 @@ namespace MovieDatabaseAPITesting
 {
     public class Helpers
     {
-        RestClient client;
-        RestRequest request;
-        JObject validResponse;
-        JObject errorResponse;
-
-        public RestRequest GETRequest()
+        public RestRequest GETRequest(string host, string apiKey)
         {
-            var request = new RestRequest(Method.GET);
+            RestRequest request = new RestRequest(Method.GET);
 
-            request.AddHeader("x-rapidapi-host", "movie-database-imdb-alternative.p.rapidapi.com");
-            request.AddHeader("x-rapidapi-key", "a7a4498059mshb397be3ba3c8cffp1ed061jsnc41d2ee900b9");
+            request.AddHeader("x-rapidapi-host", $"{host}");
+            request.AddHeader("x-rapidapi-key", $"{apiKey}");
 
             return request;
         }
 
-        public List<Search> PrepareMoviesListFromSCV(string pathToFile)
+        public List<Search> PrepareMoviesListFromCSVUsingAttributes(string pathToFile)
         {
             var streamReader = new StreamReader($"{pathToFile}");
             var csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
+            List<Search> movieList = csvReader.GetRecords<Search>().ToList();
+
+            return movieList;
+        }
+
+        public List<Search> PrepareMoviesListFromCSVUsingMapping(string pathToFile)
+        {
+            var streamReader = new StreamReader($"{pathToFile}");
+            var csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture);
+            csvReader.Context.RegisterClassMap<SearchMap>();
             List<Search> movieList = csvReader.GetRecords<Search>().ToList();
 
             return movieList;
@@ -51,24 +56,63 @@ namespace MovieDatabaseAPITesting
             return model;
         }
 
-        public JObject PrepareResponseModelFromCSV(string pathToFile)
+        public JObject PrepareResponseModelFromCSVUsingAttributes(string pathToFile)
         {
-            var movieList = new Helpers().PrepareMoviesListFromSCV(pathToFile);
-
+            var movieList = new Helpers().PrepareMoviesListFromCSVUsingAttributes(pathToFile);
             var model = new Helpers().PrepareResponseModel(movieList, movieList.Count.ToString(), "True");
 
             return model;
         }
 
-        public JObject PrepareDifferentPageModel(string pathToFile, int indexOfFirstElement, int countOfElements)
+        public JObject PrepareResponseModelFromCSVUsingMapping(string pathToFile)
         {
-            var movieList = new Helpers().PrepareMoviesListFromSCV(pathToFile);
+            var movieList = new Helpers().PrepareMoviesListFromCSVUsingMapping(pathToFile);
+            var model = new Helpers().PrepareResponseModel(movieList, movieList.Count.ToString(), "True");
 
-            var pageList = movieList.GetRange(indexOfFirstElement, countOfElements);  // перейменувати
+            return model;
+        }
 
+        public JObject PrepareResponseModelFromJSON(string pathToFile)
+        {
+            StreamReader responseRead = new StreamReader($"{pathToFile}");
+            string validJson = responseRead.ReadToEnd();
+            var model = JObject.Parse(validJson);
+
+            return model;
+        }
+
+        public JObject PrepareSeparatePageModelFromCSV(string pathToFile, int indexOfFirstElement, int countOfElements)
+        {
+            var movieList = new Helpers().PrepareMoviesListFromCSVUsingAttributes(pathToFile);
+            var pageList = movieList.GetRange(indexOfFirstElement, countOfElements);
             var model = new Helpers().PrepareResponseModel(pageList, movieList.Count.ToString(), "True");
 
             return model;
+        }
+        
+        public bool CheckPartOfTitleInResponse(string title, Root responseObject)
+        {
+            string[] titleSubstring = title.ToLower().Split(' ');
+            //string[] titleSubstring = { "the", "hatefful" };
+
+            List<Search> search = responseObject.Search;
+            string[] responseTitles = search.Select(Search => Search.Title.ToLower()).ToArray();
+
+            bool z = true;
+
+            foreach (var item in responseTitles)
+            {
+                foreach (var substring in titleSubstring)
+                {
+                    z = (Array.Exists(responseTitles, x => item.Contains(substring)));
+
+                    if (z != true)
+                        break;
+                }
+                if (z != true)
+                    break;
+            }
+            return z;
         }
     }
 }

@@ -16,6 +16,7 @@ using System.IO;
 using System.Net;
 using Newtonsoft.Json.Schema;
 using CsvHelper;
+using System.Globalization;
 
 namespace MovieDatabaseAPITesting
 {
@@ -23,6 +24,8 @@ namespace MovieDatabaseAPITesting
     {
         RestClient client;
         RestRequest request;
+        JObject validResponse;
+        JObject errorResponse;
 
         [SetUp]
         public void Setup()
@@ -38,14 +41,14 @@ namespace MovieDatabaseAPITesting
         }
 
         [Test]
-        public void Test()
+        public void Test1()
         {
             request.AddParameter("year", "2019");
 
             // get full URL
             var fullURL = client.BuildUri(request);
 
-            var response = client.Execute(request, Method.GET);
+            var response = client.Execute(request);
 
             // convert to MovieDatabaseAPITesting.Root object
             var test = JsonConvert.DeserializeObject<Root>(response.Content);
@@ -64,68 +67,19 @@ namespace MovieDatabaseAPITesting
             JObject expected = JObject.Parse(json);
             JObject actual = JObject.Parse(response.Content);
 
-            // check response DeepEquals
-            Assert.That(JToken.DeepEquals(expected, actual), "JSON Model Is Not Correct");
-        }
-
-        [Test]
-        public void Test1()
-        {
-            /*
-            client = new RestClient("https://movie-database-imdb-alternative.p.rapidapi.com/");
-
-            request = new RestRequest(Method.GET);
-
-            request.AddHeader("x-rapidapi-host", "movie-database-imdb-alternative.p.rapidapi.com");
-            request.AddHeader("x-rapidapi-key", "a7a4498059mshb397be3ba3c8cffp1ed061jsnc41d2ee900b9");
-            */
             // parse ValidResponse.json to compare JSON response model
             StreamReader validResponseRead = new StreamReader(@"..\..\..\ResponseModels\ValidResponseModel.json");
             string validJson = validResponseRead.ReadToEnd();
             var validResponse = JToken.Parse(validJson);
 
-            var test = validResponse;
-            Console.WriteLine(test);
-
-        }
-
-        [Test]
-        public  void Test2()
-        {
-            client = new RestClient("https://movie-database-imdb-alternative.p.rapidapi.com/");
-
-            request = new RestRequest(Method.GET);
-
-            request.AddHeader("x-rapidapi-host", "movie-database-imdb-alternative.p.rapidapi.com");
-            request.AddHeader("x-rapidapi-key", "a7a4498059mshb397be3ba3c8cffp1ed061jsnc41d2ee900b9");
-
-            // Given
-            request.AddParameter("s", "The Hateful Eight");
-            request.AddParameter("r", "json");
-            request.AddParameter("type", "movie");
-            request.AddParameter("y", "2015");
-            request.AddParameter("page", "1");
-
-            // When
-            var response = client.Execute(request, Method.GET);
-            JObject actual = JObject.Parse(response.Content);
-
-            StreamReader validResponseRead = new StreamReader(@"..\..\..\ResponseModels\ValidResponse.json");
-            string validJson = validResponseRead.ReadToEnd();
-            var validResponse = JToken.Parse(validJson);
-
-            // Then
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(response.StatusDescription, Is.EqualTo("OK"));
-            Assert.That(JToken.DeepEquals(validResponse, actual), "JSON Model Is Not Correct");
+            // check response DeepEquals
+            Assert.That(JToken.DeepEquals(expected, actual), "JSON Model Is Not Correct");
         }
 
         [Test]
         public void CheckJSONSchema()
         {
             // Given
-            var request = new Helpers().GETRequest();
-
             request.AddParameter("s", "Kill Bill");
             request.AddParameter("r", "json");
             request.AddParameter("type", "movie");

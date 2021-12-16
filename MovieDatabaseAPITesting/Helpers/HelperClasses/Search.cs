@@ -24,6 +24,8 @@ namespace MovieDatabaseAPITesting
         public string Type { get; set; }
         [Name("poster")]
         public string Poster { get; set; }
+
+        public Search() { }
         
         public Search(string title, string year, string imdbId, string type, string poster) 
         {
@@ -33,18 +35,19 @@ namespace MovieDatabaseAPITesting
             Type = type;
             Poster = poster;
         }
+        
     }
- /*
-    public sealed class SearchMap : ClassMap<Search>
-    {
-        public SearchMap()
-        {
-            Map(m => m.Title).Name("title");
-            Map(m => m.Year).Name("year");
-            Map(m => m.imdbID).Name("imdbId");
-            Map(m => m.Type).Name("type");
-            Map(m => m.Poster).Name("poster");
-        }
-    }
- */
+    
+       public sealed class SearchMap : ClassMap<Search>
+       {
+           public SearchMap()
+           {
+               Map(m => m.Title).Name("title");
+               Map(m => m.Year).Name("year");
+               Map(m => m.imdbID).Name("imdbId");
+               Map(m => m.Type).Name("type");
+               Map(m => m.Poster).Name("poster");
+           }
+       }
+    
 }
